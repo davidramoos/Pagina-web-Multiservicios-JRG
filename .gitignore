@@ -1,0 +1,12 @@
+# Herramienta local de administración y respaldos (no publicar)
+admin.html
+generador-qr.html
+_respaldo/
+
+# Archivos temporales / del sistema
+*.zip
+*.tmp
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/

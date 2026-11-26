@@ -18,7 +18,7 @@ function render(){const q=nz(st.q);
  let l=inCat().filter(p=>(!st.s||p.s===st.s)&&(!st.b||p.b===st.b)&&(!st.v||p.v===st.v)&&(!st.pr||p.pr===st.pr)&&(!st.x||p.x===st.x)&&(!st.d||p.st)&&(!q||q.split(/\s+/).every(w=>nz(p.n+' '+p.b+' '+p.s+' '+p.v+' '+lab(p.c)).includes(w))));
  if(st.o==='min')l.sort((a,b)=>a.p-b.p);if(st.o==='max')l.sort((a,b)=>b.p-a.p);if(st.o==='az')l.sort((a,b)=>a.n.localeCompare(b.n,'es',{numeric:true}));
  $('#pcount').textContent=l.length.toLocaleString('es-CO')+(l.length===1?' producto':' productos')+(cat?' en '+lab(cat):'');
- $('#pgrid').innerHTML=l.length?l.slice(0,st.n).map(cardHTML).join(''):'<p class="empty">No encontramos productos con ese filtro. Prueba otra categoría o quita algún filtro.</p>';
+ $('#pgrid').innerHTML=l.length?l.slice(0,st.n).map(cardHTML).join(''):'<div class="empty"><p>No encontramos productos con ese filtro. Prueba otra categoría o quita algún filtro.</p><p>¿Buscas una referencia específica? <a class="lnk" href="https://wa.me/573125529044?text=Hola%20Multiservicios%20JRG%2C%20estoy%20buscando%20un%20producto%20que%20no%20encontr%C3%A9%20en%20la%20tienda." target="_blank" rel="noopener">Escríbenos por WhatsApp</a> y te ayudamos.</p></div>';
  $('#more').hidden=l.length<=st.n;$('#more').textContent='Mostrar más ('+(l.length-st.n).toLocaleString('es-CO')+' restantes)'}
 $('#cats').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;cat=b.dataset.c;Object.assign(st,{s:'',b:'',v:'',pr:'',x:'',n:24});chips();filtros();render()};
 $('#pq').oninput=e=>{st.q=e.target.value;st.n=24;render()};

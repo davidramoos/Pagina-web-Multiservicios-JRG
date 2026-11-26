@@ -88,7 +88,7 @@ function kindOf(p){const n=String(p.n).toUpperCase(),s=String(p.s||'');
   case'bom':return/Buj/i.test(s)?'plug':/Fusib/i.test(s)||/FUSIBLE/.test(n)?'fuse':/El[eé]ctric/i.test(s)||/REL[EÉ]|SWITCH|SENSOR|INTERRUPT/.test(n)?'relay':'bulb';
   case'bat':return'bat';case'plu':return'wiper';case'ban':return'belt';case'tor':return/TAPON|TAPA/.test(n)&&/RADIADOR/.test(n)?'cap':'bolt';
   case'gr':return'tub';
-  case'amb':return/SPRAY|AEROSOL|LATA/.test(n)?'can':/EMBELLEC/i.test(p.s||'')?'bottle':'tree';
+  case'amb':return/SPRAY|AEROSOL|LATA/.test(n)?'can':/RPTO|REPUESTO|AQUA|L[IÍ]QUIDO|\bML\b/.test(n)?'bottle':'tree';
   case'sil':return/SPRAY|AEROSOL|SILICONA|BRILLA|LUBRIC/.test(n)?'can':'bottle';
   case'bel':return/CERA|PASTA|CREMA/.test(n)?'tub':/PA[ÑN]O|MICROFIBRA|ESPONJA|TOALLA|GAMUZA|FRANELA/.test(n)?'cloth':/SPRAY|AEROSOL/.test(n)?'can':'bottle';
   case'adi':return/SPRAY|AEROSOL/.test(n)?'can':'bottle';

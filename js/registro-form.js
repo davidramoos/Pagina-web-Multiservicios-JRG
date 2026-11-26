@@ -14,20 +14,25 @@ $('#rv').onsubmit=async e=>{e.preventDefault();err('');
  const r=await JRG.registrar({placa,tipo:$('#rt').value,marca:$('#rm').value,modelo:$('#rmo').value,anio:$('#ra').value,nombre:$('#rn').value,celular:cel,km:$('#rk').value,aceite:$('#ro').value,cantidad:$('#rq').value,fecha:$('#rf').value,correo:$('#re').value.trim(),recordar:$('#rrec').checked,acepta:true,web:$('#rw').value});
  b.disabled=false;b.textContent='Registrar mi vehículo';
  if(!r||!r.ok)return err(MSG[r&&r.error]||MSG.error);
- $('#rv').hidden=true;$('#rok').hidden=false;$('#rokp').textContent=placa;window._rp=placa;window._rc=cel;$('#rokd').textContent=r.duplicado?'Ese cambio ya estaba registrado para esta placa.':r.nuevo===false?'Listo, agregamos este cambio al historial de tu vehículo.':'Tu vehículo quedó registrado. Ya puedes buscar tu historial con tu placa cuando quieras.'};
+ $('#rv').hidden=true;$('#rok').hidden=false;$('#rokp').textContent=placa;window._rp=placa;window._rc=cel;try{const T=window.JRGTarjeta,nu=!r.duplicado&&r.nuevo!==false;$('#rtarj').innerHTML=T&&nu?T.html({vehiculo:[$('#rm').value,$('#rmo').value,$('#ra').value].filter(Boolean).join(' ').trim()||'Mi vehículo',contacto:{nombre:$('#rn').value.trim()},cambios:[{f:$('#rf').value,aceite:$('#ro').value,cant:$('#rq').value,km:$('#rk').value}]},placa,{status:false,reg:true}):''}catch(x){console.warn(x)};$('#rokd').textContent=r.duplicado?'Ese cambio ya estaba registrado para esta placa.':r.nuevo===false?'Listo, agregamos este cambio al historial de tu vehículo.':'Tu vehículo quedó registrado. Ya puedes buscar tu historial con tu placa cuando quieras.'};
 $('#rtar').onclick=()=>verTarjeta(window._rp,window._rc);
 const dl=(id,l)=>{let d=$('#'+id);if(!d){d=document.createElement('datalist');d.id=id;document.body.append(d)}d.innerHTML=l.map(x=>'<option value="'+esc(x)+'">').join('')};
 dl('dlm',Object.keys(VEH).map(b=>b.replace(/\s*\(moto\)/,'')));$('#rm').setAttribute('list','dlm');
 const mods=()=>{const b=$('#rm').value.trim().toLowerCase(),k=Object.keys(VEH).find(x=>x.replace(/\s*\(moto\)/,'').toLowerCase()===b);dl('dlmo',k?Object.keys(VEH[k]):[])};
 $('#rm').addEventListener('input',mods);$('#rmo').setAttribute('list','dlmo');
-$('#rotro').onclick=()=>{$('#rv').reset();$('#rv').hidden=false;$('#rok').hidden=true;$('#rp').focus()};
-/* ---------- Código QR para el local (se abre con  #qr  al final de la dirección) ---------- */
+$('#rotro').onclick=()=>{$('#rv').reset();$('#rtarj').innerHTML='';$('#rv').hidden=false;$('#rok').hidden=true;$('#rp').focus()};
+/* ---------- Código QR para el local (se abre con  #qr  al final de la dirección); lleva a  #ingreso  (placa + kilometraje) ---------- */
 function dibujar(){const u=$('#qrurl').value.trim(),box=$('#qrbox');
  if(!/^https?:\/\//i.test(u)){box.innerHTML='<p class="hint">Escribe la dirección completa de tu página (empieza por https://).</p>';return}
  const q=qrcode(0,'M');q.addData(u);q.make();box.innerHTML=q.createSvgTag({cellSize:8,margin:2,scalable:true})}
-function base(){let b='';try{b=location.href.split('#')[0]}catch(e){}return /^https?:/i.test(b)&&!/claudeusercontent|localhost|127\.0\.0\.1/.test(b)?b+'#registro':''}
-window.qrIniciar=()=>{const b=base();$('#qrurl').value=b||'https://TU-PAGINA.com/#registro';$('#qrwarn').hidden=!!b;dibujar()};
+function base(){let b='';try{b=location.href.split('#')[0]}catch(e){}return /^https?:/i.test(b)&&!/claudeusercontent|localhost|127\.0\.0\.1/.test(b)?b+'#ingreso':''}
+window.qrIniciar=()=>{const b=base();$('#qrurl').value=b||'https://TU-PAGINA.com/#ingreso';$('#qrwarn').hidden=!!b;dibujar()};
 $('#qrurl').oninput=dibujar;
 $('#qrprint').onclick=()=>{document.body.classList.add('pq');print();setTimeout(()=>document.body.classList.remove('pq'),800)};
-$('#qrdown').onclick=()=>{const s=$('#qrbox svg');if(!s)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s.outerHTML],{type:'image/svg+xml'}));a.download='QR-registro-JRG.svg';document.body.append(a);a.click();a.remove()};
+$('#qrpng').onclick=()=>{const s=$('#qrbox svg');if(!s)return;const W=1200,x=new XMLSerializer().serializeToString(s),im=new Image();
+ im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=W;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,W);g.drawImage(im,0,0,W,W);
+  c.toBlob(bl=>{const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='QR-ingreso-JRG.png';document.body.append(a);a.click();a.remove()},'image/png')};
+ im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(x)};
+$('#qrcopy').onclick=()=>{const u=$('#qrurl').value.trim();(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>{$('#qrcopy').textContent='¡Copiada!'},()=>{$('#qrurl').select()});setTimeout(()=>$('#qrcopy').textContent='Copiar dirección',1500)};
+$('#qrdown').onclick=()=>{const s=$('#qrbox svg');if(!s)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s.outerHTML],{type:'image/svg+xml'}));a.download='QR-ingreso-JRG.svg';document.body.append(a);a.click();a.remove()};
 })();

@@ -36,7 +36,7 @@ function oilControls(){const pool=oilPool(),ob=$('#obrand'),ov=$('#ovis'),cb=ob.
 function drawOils(){const b=$('#obrand').value,v=$('#ovis').value,q=NU($('#oq').value.trim()),ws=q?q.split(/\s+/):[];
  const l=oilPool().filter(o=>(!b||o.b===b)&&(!v||o.x===v)&&ws.every(w=>NU(o.n+' '+o.b).includes(w)));
  $('#ocount').textContent=l.length+(svc==='valv'?(l.length===1?' valvulina':' valvulinas'):(l.length===1?' aceite':' aceites'))+(b?' de '+b:'')+(isMoto(vehKey())?' para moto':(vehKey()?(svc==='valv'?' para caja o diferencial':' para carro'):''));
- $('#oils').innerHTML=l.length?l.map(o=>`<button type="button" class="oil${selOil&&selOil.id===o.id?' sel':''}" data-id="${o.id}"><span>${esc(o.n)}<small>${o.inf?'Presentación estimada: '+(o.Lq<2?'cuarto':'galón')+' · ':(o.pr?o.pr+' · ':'')}${(()=>{const f=FAM[famKey(o)]||{};return f.c&&f.g?'Cuarto y galón · ':''})()}${o.st?'Disponible':'Consultar disponibilidad'}</small></span><b>${money(o.p)}</b></button>`).join(''):'<p class="empty" style="padding:14px">No hay aceites con ese filtro. Prueba con otra marca o busca otro nombre.</p>'}
+ $('#oils').innerHTML=l.length?l.map(o=>`<button type="button" class="oil${selOil&&selOil.id===o.id?' sel':''}" data-id="${o.id}"><span>${esc(o.n)}<small>${o.inf?'Presentación estimada: '+(o.Lq<2?'cuarto':'galón')+' · ':(o.pr?o.pr+' · ':'')}${(()=>{const f=FAM[famKey(o)]||{};return f.c&&f.g?'Cuarto y galón · ':''})()}${o.st?'Disponible':'Consultar disponibilidad'}${/GRANEL/i.test(o.n)?' · <em class="gnote">el valor del cambio puede presentar variaciones</em>':''}</small></span><b>${money(o.p)}</b></button>`).join(''):'<p class="empty" style="padding:14px">No hay aceites con ese filtro. Prueba con otra marca o busca otro nombre.</p>'}
 $('#oils').onclick=e=>{const b=e.target.closest('.oil');if(!b)return;selOil=P[b.dataset.id];PRES='mix';drawOils();drawPres();calc()};
 function drawPres(){const box=$('#pres');if(!selOil){box.innerHTML='';return}const f=FAM[famKey(selOil)]||{};
  if(!(f.c&&f.g)){box.innerHTML=f.g&&!f.c?'<p class="hint">Este '+NOUN()+' solo está en galón: el cuarto se calcula como 1/4 del galón.</p>':'';return}
@@ -45,7 +45,7 @@ function drawPres(){const box=$('#pres');if(!selOil){box.innerHTML='';return}con
 $('#pres').onclick=e=>{const b=e.target.closest('[data-pres]');if(!b)return;PRES=b.dataset.pres;drawPres();calc()};
 /* ---------- servicio: aceite de motor o valvulina ---------- */
 function drawSvc(){const ch=(v,t)=>`<button type="button" class="chip${svc===v?' on':''}" data-svc="${v}">${t}</button>`;
- $('#vsvc').innerHTML=`<label style="margin-top:14px">¿Qué quieres cambiar?</label><div class="chips" style="margin:6px 0 0">${ch('aceite','Aceite de motor')}${ch('valv','Valvulina (caja / diferencial)')}</div>`;
+ $('#vsvc').innerHTML=`<label style="margin-top:14px">¿Qué quieres cambiar?</label><div class="chips" style="margin:6px 0 0">${ch('aceite','Aceite de motor')}<button type="button" class="chip" data-go="liquidos?to=l-valv">Valvulina (caja / diferencial) →</button></div>`;
  const v=svc==='valv';$('#lcant').textContent=v?'Cantidad de valvulina (en cuartos)':'Cantidad de aceite (en cuartos)';
  $('#h2').textContent=v?'2. Tu valvulina':'2. Tu aceite';$('#h3f').hidden=v;$('#fbox').hidden=v;$('#oq').placeholder=v?'Buscar valvulina: 80W90, Terpel…':'Buscar aceite: 20W50, Castrol…';
  $('#cnote').textContent=v?'Cantidad aproximada para caja o diferencial; ajústala según tu vehículo. Confirmamos al revisarlo.':'Ejemplo: 5 cuartos = 1 galón + 1 cuarto. Puedes cambiarla si tu vehículo lleva otra cantidad.'}
@@ -84,24 +84,35 @@ const FBP=(id,mt)=>id==='fi'?(mt?FILTRO.moto:FILTRO.carro):id==='fa'?(mt?FILTRO.
 const ptok=p=>p._t||(p._t=NU(p.n).split(/[^A-Z0-9]+/).filter(Boolean));
 const tokHit=(p,toks)=>toks.length&&ptok(p).some(t=>toks.some(x=>t===x||(t.length>x.length&&t.endsWith(x)&&/^[A-Z]{1,4}$/.test(t.slice(0,t.length-x.length)))||(x.length>t.length&&x.endsWith(t)&&/^[A-Z]{1,4}$/.test(x.slice(0,x.length-t.length)))));
 const recToks=(id,k,m)=>{const r=REFV[k+'|'+m];return r&&(id==='fi'||id==='fa'||id==='fc'||id==='ft')?(r[id==='ft'?'fc':id]||[]):[]};
-function compat(def,k,m){const rx=vehRx(k,m),id=def[0],cur=diesel()?curFor(k,m):null,tk=cur&&cur[id],rt=recToks(id,k,m);
+function compat(def,k,m){const rx=vehRx(k,m),brx=new RegExp('(^|[^A-Z])(?:'+NU(k).split(/\s+/).filter(Boolean).map(rx2).join('[\\s\\-]*')+')($|[^A-Z0-9])'),id=def[0],cur=diesel()?curFor(k,m):null,tk=cur&&cur[id],rt=recToks(id,k,m);
  const hit=p=>tk&&tk.some(t=>sq(p.n).includes(t)),trapHit=p=>cur&&cur.ft&&cur.ft.some(t=>sq(p.n).includes(t)),gas=p=>p.s==='Gasolina'||/GASOLINA/i.test(p.n);
- const rec=p=>def[3](p)&&tokHit(p,rt);
- let l=P.filter(p=>p.c==='fc'&&(id==='fc'||id==='ft')&&diesel()?(!gas(p)&&(id==='ft'||!trapHit(p))&&(hit(p)||rec(p)||(def[3](p)&&rx.test(NU(p.n))))):(def[3](p)&&(rx.test(NU(p.n))||rec(p))));
- l.forEach(p=>p._rec=!!(hit(p)||rec(p)));
- return l.sort((a,b)=>(b._rec-a._rec)||b.st-a.st||a.p-b.p)}
+ /* los códigos del taller de 1 a 4 dígitos (p. ej. «2006») también son años: solo valen si el nombre menciona el modelo o la marca */
+ const rtL=rt.filter(t=>!/^\d{1,4}$/.test(t)),rtS=rt.filter(t=>/^\d{1,4}$/.test(t)),mm=p=>rx.test(NU(p.n)),bm=p=>brx.test(NU(p.n));
+ const rec=p=>def[3](p)&&(tokHit(p,rtL)||(tokHit(p,rtS)&&(mm(p)||bm(p))));
+ let l=P.filter(p=>p.c==='fc'&&(id==='fc'||id==='ft')&&diesel()?(!gas(p)&&(id==='ft'||!trapHit(p))&&(hit(p)||rec(p)||(def[3](p)&&(mm(p)||(id==='ft'&&bm(p)))))):(def[3](p)&&(mm(p)||rec(p))));
+ /* camiones y camionetas diésel sin referencia propia del modelo: se ofrecen las de la marca */
+ if(!l.length&&diesel()&&id!=='cab')l=P.filter(p=>def[3](p)&&bm(p)&&!(id==='fc'&&gas(p)));
+ l.forEach(p=>{p._rec=!!(hit(p)||rec(p));p._mm=mm(p)?1:0});
+ return l.sort((a,b)=>(b._rec-a._rec)||b.st-a.st||(b._mm-a._mm)||a.p-b.p)}
 function drawFilters(){const k=vehKey(),m=modKey(k),box=$('#fbox');
  if(!k||!m){box.innerHTML='<p class="hint">Elige primero la marca y el modelo de tu vehículo para ver solo los filtros que le sirven.</p>';return}
  const mt=isMoto(k);let h='';
  FT.forEach(def=>{const [id,tag0,tag]=def,label=FTLABEL(id);if(mt&&(id==='cab'||id==='fc'||id==='ft')||id==='ft'&&!diesel())return;
-  const ops=compat(def,k,m),on=FSEL[id]?FSEL[id].on:(id==='fi'||id==='fa');FSEL[id]={on,ops};
+  const ops=compat(def,k,m),on=FSEL[id]?FSEL[id].on:(id==='fi'||id==='fa'),n=FSEL[id]?FSEL[id].n:1,vv=FSEL[id]?FSEL[id].v:[];FSEL[id]={on,ops,n,v:vv};const multi=id!=='cab';
   const by={};ops.forEach(p=>(by[p.b]=by[p.b]||[]).push(p));
-  const sel=ops.length?`<select data-fs="${id}" aria-label="${label}">${Object.keys(by).sort((a,b)=>(a==='Otras marcas')-(b==='Otras marcas')||a.localeCompare(b,'es')).map(b=>`<optgroup label="${b==='Otras marcas'?'Otras referencias':esc(b)}">${by[b].map(p=>`<option value="${p.id}">${p._rec?'★ ':''}${esc(p.n)} · ${money(p.p)}${p.st?'':' · consultar'}</option>`).join('')}</optgroup>`).join('')}</select><small>${ops.length} ${ops.length===1?'opción compatible':'opciones compatibles'}${ops.some(p=>p._rec)?' · ★ = referencia que el taller ya usó en '+((REFV[k+'|'+m]||{}).v||'varios')+' vehículos de este modelo':''}</small>`:`<p class="hint">${FBP(id,mt)?`No encontramos un ${label.toLowerCase()} registrado para tu ${esc(k)} ${esc(m)}. Usamos un valor promedio (${money(FBP(id,mt))}) y confirmamos la referencia exacta en el local.`:'No hay filtros de este tipo registrados para tu vehículo.'}</p>`;
-  h+=`<div class="fb"><label class="check" style="margin-top:0"><input type="checkbox" data-ft="${id}"${on?' checked':''}${!ops.length&&!FBP(id,mt)?' disabled':''}> ${label}${tag?` <em>(incluido en el ${tag})</em>`:''}</label>${sel}</div>`});
- if(diesel())h='<p class="hint" style="margin:0 0 8px">Las camionetas y camiones diésel llevan <b>dos filtros de combustible</b>: el del motor y el de la trampa de agua.</p>'+h;
+  const opts=cur=>Object.keys(by).sort((a,b)=>(a==='Otras marcas')-(b==='Otras marcas')||a.localeCompare(b,'es')).map(b=>`<optgroup label="${b==='Otras marcas'?'Otras referencias':esc(b)}">${by[b].map(p=>`<option value="${p.id}"${String(p.id)===String(cur)?' selected':''}>${p._rec?'★ ':''}${esc(p.n)} · ${money(p.p)}${p.st?'':' · consultar'}</option>`).join('')}</optgroup>`).join('');
+  const sels=Array.from({length:on&&multi?n:1},(_,i)=>`${n>1&&on?`<span class="fqn">${label} ${i+1} de ${n}</span>`:''}<select data-fs="${id}" data-i="${i}" aria-label="${label}${n>1&&on?' '+(i+1)+' de '+n:''}">${opts(vv[i]!=null?vv[i]:vv[0])}</select>`).join('');
+  const sel=ops.length?sels+`<small>${ops.length} ${ops.length===1?'opción compatible':'opciones compatibles'}${ops.some(p=>p._rec)?' · ★ = referencia que el taller ya usó en '+((REFV[k+'|'+m]||{}).v||'varios')+' vehículos de este modelo':''}</small>`:`<p class="hint">${FBP(id,mt)?`No encontramos un ${label.toLowerCase()} registrado para tu ${esc(k)} ${esc(m)}. Usamos un valor promedio (${money(FBP(id,mt))}) y confirmamos la referencia exacta en el local.`:'No hay filtros de este tipo registrados para tu vehículo.'}</p>`;
+  const qty=on&&multi&&(ops.length||FBP(id,mt))?`<label class="fq">Cantidad <select data-fq="${id}" aria-label="¿Cuántos ${label.toLowerCase()} lleva?">${[1,2,3].map(x=>`<option${x===n?' selected':''}>${x}</option>`).join('')}</select></label>`:'';
+  h+=`<div class="fb"><div class="fh"><label class="check" style="margin-top:0"><input type="checkbox" data-ft="${id}"${on?' checked':''}${!ops.length&&!FBP(id,mt)?' disabled':''}> ${label}${tag?` <em>(incluido en el ${tag})</em>`:''}</label>${qty}</div>${sel}</div>`});
+ if(diesel())h='<p class="hint" style="margin:0 0 8px">Las camionetas y camiones diésel llevan normalmente <b>dos filtros de combustible</b>: el del motor y el de la trampa de agua. Si el tuyo lleva más de uno del mismo tipo (o dos filtros de aire o de aceite), marca el filtro y cambia <b>Cantidad</b>.</p>'+h;
  box.innerHTML=h}
 $('#cant').oninput=()=>calc();
-$('#fbox').onchange=e=>{const t=e.target.dataset.ft;if(t){FSEL[t].on=e.target.checked}calc()};
+$('#fbox').onchange=e=>{const t=e.target.dataset.ft,q=e.target.dataset.fq,f=e.target.dataset.fs;
+ if(t){FSEL[t].on=e.target.checked;drawFilters()}
+ else if(q){FSEL[q].n=+e.target.value;drawFilters()}
+ else if(f){const v=FSEL[f].v;document.querySelectorAll('[data-fs="'+f+'"]').forEach((el,i)=>v[i]=el.value)}
+ calc()};
 /* ---------- tipo de vehículo y beneficio de fidelidad (solo en la cotización) ---------- */
 let cls='',clsFor='';
 const BENEF={carro:'En carros y taxis, por cada 5 cambios el sexto paga la mitad.',camioneta:'En camionetas, por cada 6 cambios el séptimo paga la mitad.',camion:'En camiones, por cada 6 cambios el séptimo paga la mitad. Se obsequia el engrase.'};
@@ -128,16 +139,20 @@ function calc(){const k=vehKey(),m=modKey(k),dl=$('#sumdl'),msg=[];drawBenef();
  if(!(k&&m&&selOil&&!msg.length)){dl.innerHTML=`<dt>Vehículo</dt><dd>${k&&m?k+' '+m:'Elige marca y modelo'}</dd><dt>Aceite</dt><dd>${selOil?esc(selOil.n):'Elige un aceite'}</dd>`;$('#tot').textContent='$0';$('#sendQ').disabled=true;return}
  const cu=Math.max(0.5,parseFloat($('#cant').value)||(svc==='valv'?2:VEH[k][m])),mt=isMoto(k),oil=selOil,co=costoAceite(oil,cu,PRES),ac=co.costo,lines=[],valv=svc==='valv';let fsum=0,fi=false,fav=false;
  if(!valv)FT.forEach(([id])=>{const label=FTLABEL(id),s=FSEL[id];if(!s||!s.on)return;
-  const el=document.querySelector('[data-fs="'+id+'"]');let name,price;
-  if(el&&s.ops.length){const p=P[el.value];name=p.n;price=p.p}else if(FBP(id,mt)){name=label+' (valor promedio, se confirma la referencia)';price=FBP(id,mt)}else return;
-  if(id==='fi')fi=true;if(id==='fa')fav=true;fsum+=price;lines.push([label,name,price])});
+  const n0=lines.length,els=[...document.querySelectorAll('[data-fs="'+id+'"]')],cnt=s.ops.length?els.length:(s.n||1);
+  for(let i=0;i<cnt;i++){let name,price;const lab=cnt>1?label+' '+(i+1)+' de '+cnt:label;
+   if(s.ops.length&&els[i]){const p=P[els[i].value];name=p.n;price=p.p}else if(FBP(id,mt)){name=label+' (valor promedio, se confirma la referencia)';price=FBP(id,mt)}else continue;
+   fsum+=price;lines.push([lab,name,price])}
+  if(lines.length>n0){if(id==='fi')fi=true;if(id==='fa')fav=true}});
  const total=ac+fsum;
  const completo=!valv&&fi&&fav;Q={k,m,oil,cu,txt:co.txt,ac,lines,fi,fav,completo,total,valv};
- dl.innerHTML=`<dt>Vehículo</dt><dd>${k} ${m}${motor&&!valv?' · '+esc(motor.n):''}</dd><dt>${valv?'Valvulina':'Aceite'}</dt><dd>${esc(oil.n)}</dd><dt>Necesitas</dt><dd>${cu} ${cu===1?'cuarto':'cuartos'}</dd><dt>Se arma con</dt><dd>${esc(co.txt)}${oil.inf?' (presentación estimada)':''}</dd><dt>${valv?'Valvulina':'Aceite'}</dt><dd>${money(ac)}</dd>${lines.map(l=>`<dt>${l[0]}</dt><dd>${money(l[2])}</dd>`).join('')}<dt>Mano de obra</dt><dd>${completo?'<span class="free">¡GRATIS!</span>':'A confirmar'}</dd>`;
+ const kmN=(()=>{if(valv||!window.JRGKm)return'';const t=oil.n+' '+(oil.x||''),i=JRGKm.inc(t);return i?'cada '+i.toLocaleString('es-CO')+' km ('+JRGKm.etiqueta(t)+')':''})(),gran=!valv&&/GRANEL/i.test(oil.n);
+ dl.innerHTML=`<dt>Vehículo</dt><dd>${k} ${m}${motor&&!valv?' · '+esc(motor.n):''}</dd><dt>${valv?'Valvulina':'Aceite'}</dt><dd>${esc(oil.n)}</dd><dt>Necesitas</dt><dd>${cu} ${cu===1?'cuarto':'cuartos'}</dd><dt>Se arma con</dt><dd>${esc(co.txt)}${oil.inf?' (presentación estimada)':''}</dd><dt>${valv?'Valvulina':'Aceite'}</dt><dd>${money(ac)}</dd>${lines.map(l=>`<dt>${l[0]}</dt><dd>${money(l[2])}</dd>`).join('')}${kmN?`<dt>Próximo cambio</dt><dd>${kmN}</dd>`:''}<dt>Mano de obra</dt><dd>${completo?'<span class="free">¡GRATIS!</span>':'A confirmar'}</dd>`;
  $('#tot').textContent=money(total);
  $('#mono').textContent=valv?'La mano de obra del cambio de valvulina se confirma en el local y no está incluida en el total.':completo?'Cambio completo (aceite + filtro de aceite + filtro de aire): la mano de obra no tiene costo.':'La mano de obra es gratis con el cambio completo: aceite, filtro de aceite y filtro de aire. Si falta alguno, se confirma en el local y no está incluida en el total.';
+ if(gran)$('#mono').textContent+=' Aceite a granel: el valor del cambio puede presentar variaciones.';
  $('#sendQ').disabled=false}
-$('#sendQ').onclick=()=>Q&&ticket({t:Q.valv?'Cotización de cambio de valvulina':'Cotización de cambio de aceite',lines:['Vehículo: '+Q.k+' '+Q.m+(motor&&!Q.valv?' ('+motor.n+')':''),(Q.valv?'Valvulina: ':'Aceite: ')+Q.oil.n+' ('+Q.cu+' cuartos = '+Q.txt+(Q.oil.inf?', presentación estimada':'')+')',...Q.lines.map(l=>l[0]+': '+l[1]+' ('+money(l[2])+')'),'Mano de obra: '+(Q.completo?'GRATIS (cambio completo)':'a confirmar en el local'),...(BEN()&&!Q.valv?['Beneficio: '+BEN()]:[]),...(Q.oil.st?[]:['Aceite sin stock registrado: consultar disponibilidad'])],total:Q.total,ask:'full'});
+$('#sendQ').onclick=()=>Q&&ticket({t:Q.valv?'Cotización de cambio de valvulina':'Cotización de cambio de aceite',lines:['Vehículo: '+Q.k+' '+Q.m+(motor&&!Q.valv?' ('+motor.n+')':''),(Q.valv?'Valvulina: ':'Aceite: ')+Q.oil.n+' ('+Q.cu+' cuartos = '+Q.txt+(Q.oil.inf?', presentación estimada':'')+')',...Q.lines.map(l=>l[0]+': '+l[1]+' ('+money(l[2])+')'),'Mano de obra: '+(Q.completo?'GRATIS (cambio completo)':'a confirmar en el local'),...(!Q.valv&&/GRANEL/i.test(Q.oil.n)?['Aceite a granel: el valor del cambio puede presentar variaciones']:[]),...(!Q.valv&&window.JRGKm&&JRGKm.inc(Q.oil.n+' '+(Q.oil.x||''))?['Próximo cambio: cada '+JRGKm.inc(Q.oil.n+' '+(Q.oil.x||'')).toLocaleString('es-CO')+' km ('+JRGKm.etiqueta(Q.oil.n+' '+(Q.oil.x||''))+')']:[]),...(BEN()&&!Q.valv?['Beneficio: '+BEN()]:[]),...(Q.oil.st?[]:['Aceite sin stock registrado: consultar disponibilidad'])],total:Q.total,ask:'full'});
 /* ---------- opciones ---------- */
 function modo(m){$$('.opt').forEach(o=>o.classList.toggle('sel',o.dataset.mode===m));$('#paneNuevo').hidden=m!=='nuevo';$('#paneCliente').hidden=m!=='cliente';(m==='nuevo'?$('#marca'):$('#placa')).focus();calc()}
 $$('.opt').forEach(b=>b.onclick=()=>modo(b.dataset.mode));
@@ -162,8 +177,7 @@ function ciclo(r){const u=r.cambios[0],t=String(u.total||'').toUpperCase(),m=/(\
 function prefill(v){const V=NU(v);const k=Object.keys(VEH).find(b=>V.includes(NU(b.replace(/\s*\(moto\)/,''))));if(!k)return null;const m=Object.keys(VEH[k]).filter(x=>V.includes(NU(x.replace(/\s*\([^)]*\)/,'')))).sort((p,q)=>q.length-p.length)[0];return m?[k,m]:[k,'']}
 /* ---------- tarjeta de cambio virtual ---------- */
 const MESES_ES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-function parseF(t){t=String(t||'');let m=/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(t);if(m){let y=+m[3];if(y<100)y+=2000;return new Date(y,+m[2]-1,+m[1])}
- m=/(\d{4})-(\d{2})-(\d{2})/.exec(t);return m?new Date(+m[1],+m[2]-1,+m[3]):null}
+function parseF(t){const a=window.JRGKm?JRGKm.fechas(t):[];return a.length?a[0]:null}   // acepta 25/10/2026, 25-10-26 y 2026-10-25
 const fmtF=d=>d.getDate()+' '+MESES_ES[d.getMonth()]+' '+d.getFullYear();
 const addMes=(d,n)=>{const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setMonth(x.getMonth()+n);return x};
 const pad2=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate());
@@ -171,13 +185,16 @@ function icsDe(placa,veh,d){const e=addMes(d,0);e.setDate(e.getDate()+1);
  const al=t=>'BEGIN:VALARM\r\nTRIGGER:'+t+'\r\nACTION:DISPLAY\r\nDESCRIPTION:Cambio de aceite '+placa+'\r\nEND:VALARM\r\n';
  return 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Multiservicios JRG//ES\r\nBEGIN:VEVENT\r\nUID:'+placa+'-'+ymd(d)+'@jrg\r\nDTSTAMP:'+ymd(new Date())+'T120000Z\r\nDTSTART;VALUE=DATE:'+ymd(d)+'\r\nDTEND;VALUE=DATE:'+ymd(e)+'\r\nSUMMARY:Cambio de aceite '+placa+' - Multiservicios JRG\r\nDESCRIPTION:Toca cambiar el aceite de tu '+veh.replace(/[,;\n]/g,' ')+'. Cotiza en la página de Multiservicios JRG.\r\n'+al('-P7D')+al('-P1D')+'END:VEVENT\r\nEND:VCALENDAR\r\n'}
 function tarjeta(r,p){const u=r.cambios[0],f=parseF(u.f);if(!f)return'';
- const meses=+r.meses||3,pr=parseF(u.prox),sig=pr||addMes(f,meses),hoy=new Date(),h0=new Date(hoy.getFullYear(),hoy.getMonth(),hoy.getDate()),dias=Math.round((sig-h0)/864e5),tot=Math.max(1,Math.round((sig-f)/864e5)),usado=Math.min(100,Math.max(0,Math.round((tot-dias)/tot*100)));
- const est=dias<0?['Vencido','#E2231A','Tu cambio ya pasó hace '+(-dias)+(dias===-1?' día':' días')+'. ¡Cotízalo hoy!']:dias<=15?['Muy pronto','#C77700',dias===0?'Tu próximo cambio es hoy.':'Faltan '+dias+(dias===1?' día':' días')+' para tu próximo cambio.']:['Al día','#0B8A3A','Faltan '+dias+' días para tu próximo cambio.'];
- return `<div class="tcard" id="tcard"><div class="th"><div><small>Tarjeta de cambio</small><b>${esc(r.vehiculo||'Mi vehículo')}</b><span>Placa ${esc(p)}</span></div><em style="background:${est[1]}">${est[0]}</em></div>
- <div class="tb"><div><small>Último cambio</small><b>${fmtF(f)}</b>${u.km?'<span>'+esc(u.km)+' km</span>':''}</div><div><small>Próximo cambio</small><b>${fmtF(sig)}</b><span>Cada ${meses} ${meses===1?'mes':'meses'}</span></div></div>
- <div class="bar"><i style="width:${usado}%;background:${est[1]}"></i></div><p class="tmsg">${est[2]}</p>
- <div class="cta" style="margin:12px 0 0"><button class="btn red" type="button" id="tkIcs">Agregar a mi calendario</button>${r.contacto&&r.contacto.tieneCorreo?'':'<button class="btn blue" type="button" id="tkRec">Recibir recordatorio por correo</button>'}</div>${r.contacto&&r.contacto.tieneCorreo?'<p class="hint" style="margin-top:10px">✔ Recibirás un correo de recordatorio cada 25 días más o menos. Para dejar de recibirlo usa el enlace al final del correo.</p>':''}<form id="tkF" hidden style="margin-top:14px"><label style="margin-top:0" for="tkC">Celular con el que se registró este vehículo</label><input id="tkC" inputmode="tel" autocomplete="tel" placeholder="3001234567"><label for="tkE">Tu correo</label><input id="tkE" type="email" autocomplete="email" placeholder="tucorreo@gmail.com"><label class="check" style="align-items:flex-start"><input type="checkbox" id="tkA"> <span>Autorizo a Multiservicios JRG a escribirme a este correo para recordarme mi cambio de aceite cada 25 días más o menos.</span></label><p class="miss" id="tkX" hidden style="margin-top:10px"></p><button class="btn wa" type="submit" id="tkB" style="margin-top:12px">Activar recordatorio</button></form></div>`}
-function tarjetaOn(r,p){const u=r.cambios[0],f=parseF(u.f);if(!f)return;const meses=+r.meses||3,sig=parseF(u.prox)||addMes(f,meses);
+ const px=window.JRGKm?JRGKm.proximo(u):null,km=px&&px.modo==='km',hoy=new Date(),h0=new Date(hoy.getFullYear(),hoy.getMonth(),hoy.getDate()),
+  a=px&&px.desde||addMes(f,3),b=px&&px.hasta||a,dias=Math.round((a-h0)/864e5),dp=Math.round((h0-b)/864e5),tot=Math.max(1,Math.round((a-f)/864e5)),usado=Math.min(100,Math.max(0,Math.round((tot-dias)/tot*100)));
+ const est=km?null:h0>b?['Vencido','#E2231A','Tu cambio ya pasó hace '+dp+(dp===1?' día':' días')+'. ¡Cotízalo hoy!']:(h0>=a)?['Muy pronto','#C77700','Ya llegó la fecha de tu próximo cambio.']:dias<=15?['Muy pronto','#C77700','Faltan '+dias+(dias===1?' día':' días')+' para tu próximo cambio.']:['Al día','#0B8A3A','Faltan '+dias+' días para tu próximo cambio.'];
+ const kmU=window.JRGKm?JRGKm.kmNum(u.km):0,ley=window.JRGKm&&px?JRGKm.leyenda(px.modo==='est'?'fecha':px.modo,u.aceite)+(px.modo==='est'?' (fecha estimada)':''):'',
+  rg=km?px.km.toLocaleString('es-CO')+' km':(a.getTime()===b.getTime()?fmtF(a):(a.getFullYear()===b.getFullYear()?a.getDate()+' '+MESES_ES[a.getMonth()]:fmtF(a))+' – '+fmtF(b));
+ return `<div class="tcard" id="tcard"><div class="th"><div><small>Tarjeta de cambio</small><b>${esc(r.vehiculo||'Mi vehículo')}</b><span>Placa ${esc(p)}</span></div>${est?`<em style="background:${est[1]}">${est[0]}</em>`:''}</div>
+ <div class="tb"><div><small>Último cambio</small><b>${fmtF(f)}</b>${kmU?'<span>'+kmU.toLocaleString('es-CO')+' km</span>':''}</div><div><small>Próximo cambio</small><b>${rg}</b><span>${esc(ley)}</span></div></div>
+ ${est?`<div class="bar"><i style="width:${usado}%;background:${est[1]}"></i></div><p class="tmsg">${est[2]}</p>`:'<p class="tmsg">Cuando vengas, dinos el kilometraje que marca tu tablero para saber cuánto te falta.</p>'}
+ <div class="cta" style="margin:12px 0 0">${est?'<button class="btn red" type="button" id="tkIcs">Agregar a mi calendario</button>':''}${r.contacto&&r.contacto.tieneCorreo?'':'<button class="btn blue" type="button" id="tkRec">Recibir recordatorio por correo</button>'}</div>${r.contacto&&r.contacto.tieneCorreo?'<p class="hint" style="margin-top:10px">✔ Recibirás un correo de recordatorio cada 25 días más o menos. Para dejar de recibirlo usa el enlace al final del correo.</p>':''}<form id="tkF" hidden style="margin-top:14px"><label style="margin-top:0" for="tkC">Celular con el que se registró este vehículo</label><input id="tkC" inputmode="tel" autocomplete="tel" placeholder="3001234567"><label for="tkE">Tu correo</label><input id="tkE" type="email" autocomplete="email" placeholder="tucorreo@gmail.com"><label class="check" style="align-items:flex-start"><input type="checkbox" id="tkA"> <span>Autorizo a Multiservicios JRG a escribirme a este correo para recordarme mi cambio de aceite cada 25 días más o menos.</span></label><p class="miss" id="tkX" hidden style="margin-top:10px"></p><button class="btn wa" type="submit" id="tkB" style="margin-top:12px">Activar recordatorio</button></form></div>`}
+function tarjetaOn(r,p){const u=r.cambios[0],f=parseF(u.f);if(!f||!$('#tkIcs'))return;const px=window.JRGKm?JRGKm.proximo(u):null,sig=px&&px.desde||addMes(f,3);
  $('#tkIcs').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([icsDe(p,r.vehiculo||'vehículo',sig)],{type:'text/calendar'}));a.download='Cambio-de-aceite-'+p+'.ics';document.body.append(a);a.click();a.remove()};
 }
 function correoOn(r,p){const rb=$('#tkRec');if(!rb)return;rb.onclick=()=>{$('#tkF').hidden=!$('#tkF').hidden;$('#tkC').focus()};
@@ -191,17 +208,19 @@ function correoOn(r,p){const rb=$('#tkRec');if(!rb)return;rb.onclick=()=>{$('#tk
 window.verTarjeta=(pl,cel)=>{go('cotizar');modo('cliente');$('#placa').value=pl;buscar(pl,cel)};
 async function buscar(pl,cel){const p=(typeof pl==='string'&&pl?pl:$v('placa')).toUpperCase().replace(/[^A-Z0-9]/g,''),o=$('#phist'),btn=$('#findP');cel=typeof cel==='string'?cel:'';if(typeof pl==='string'&&pl)$('#placa').value=p;
  if(!/^[A-Z]{3}\d{2}[A-Z0-9]$/.test(p)){o.innerHTML='<div class="miss">'+ERR.placa+'</div>';return}
- btn.disabled=true;btn.textContent='Buscando…';o.innerHTML='<p class="hint" style="margin-top:16px">Consultando el registro de la placa '+p+'…</p>';
+ btn.disabled=true;btn.textContent='Buscando…';o.innerHTML='<p class="hint" style="margin-top:16px">Consultando el registro de la placa '+p+'… la primera búsqueda puede tardar unos 15 segundos.</p>';
  const r=await JRG.consultar(p,cel);btn.disabled=false;btn.textContent='Buscar';CEL=r&&r.verificado?cel:'';
  if(!r||!r.ok){o.innerHTML='<div class="miss">'+(ERR[r&&r.error]||'No pudimos consultar el registro en este momento. Intenta de nuevo o escríbenos con el botón de WhatsApp.<small style="display:block;margin-top:6px;opacity:.7">Código: '+((r&&r.error)||'sin_respuesta')+'</small>')+'</div>';return}
  if(!r.encontrado){o.innerHTML=`<div class="miss"><b>${r.registrada?'Tu vehículo ya está registrado, pero todavía no tiene cambios guardados.':'No encontramos la placa '+p+'.'}</b><p>${r.registrada?'Cotiza tu primer cambio y quedará en tu historial.':'Si es tu primera vez con nosotros, registra tu vehículo o arma tu cotización.'}</p><div class="cta" style="margin:12px 0 0"><button class="btn blue" id="goNew">Cotizar mi primer cambio</button>${r.registrada?'':'<button class="btn red" data-go="registro">Registrar mi vehículo</button>'}</div></div>`;$('#goNew').onclick=()=>modo('nuevo');return}
  const u=r.cambios[0];if(!u){o.innerHTML='<div class="miss">Encontramos tu vehículo, pero todavía no tiene cambios guardados.</div>';return}
- const ex=[u.km&&'Km: '+u.km,u.prox&&'Próximo cambio: '+u.prox].filter(Boolean).join(' · ');
+ const ex=[u.km&&(window.JRGKm&&JRGKm.esFecha(u.km)?'Fecha de control: ':'Km: ')+u.km,u.prox&&'Próximo cambio: '+u.prox].filter(Boolean).join(' · ');
  o.innerHTML=`<div style="margin-top:22px"><h3 style="color:var(--navy);font-size:1.5rem">${esc(r.vehiculo)}</h3><small style="color:var(--steel)">Placa ${p} · ${r.cambios.length} ${r.cambios.length===1?'cambio registrado':'cambios registrados'}</small></div>${contactoHTML(r)}${tabla(r)}${ex?`<p style="color:var(--steel)">Último cambio: ${esc(ex)}</p>`:''}${ciclo(r)}
  <div class="cta" style="margin-top:16px"><button class="btn wa" id="rep">Repetir mi último cambio</button><button class="btn blue" id="otro">Cotizar con otro aceite</button></div>`;
+ if(window.JRGTarjeta){const kp=await JRG.kmPend(p);$('#phist').insertAdjacentHTML('afterbegin',JRGTarjeta.html(r,p,{status:false,kmp:kp&&kp.ok&&kp.km?kp:null})+JRGTarjeta.kmHTML(r,p));JRGTarjeta.kmOn(r,p)}
  $('#phist').insertAdjacentHTML('afterbegin',tarjeta(r,p));tarjetaOn(r,p);correoOn(r,p);contactoOn(p);if(CEL&&$('#tkC'))$('#tkC').value=CEL;
  $('#rep').onclick=()=>ticket({t:'Repetir mi cambio de aceite',lines:['Vehículo: '+r.vehiculo,'Placa: '+p,'Último cambio: '+u.f+' con '+(u.aceite||'el aceite anterior')+[u.fa&&'filtro de aire '+u.fa,u.fi&&'filtro de aceite '+u.fi].filter(Boolean).map(x=>', '+x).join(''),'Mano de obra: GRATIS si el cambio es completo (aceite + filtro de aceite + filtro de aire)'],total:null,ask:'name'});
  $('#otro').onclick=()=>{modo('nuevo');const pf=prefill(r.vehiculo);if(pf){$('#marca').value=pf[0];$('#modelo').value=pf[1]}selOil=null;onVeh();$('#oq').focus()}}
 $('#findP').onclick=()=>buscar();$('#placa').onkeydown=e=>{if(e.key==='Enter')buscar()};
+window.JRGOil={VOILS,FAM,famKey,costoAceite};
 drawSvc();oilControls();drawOils();drawFilters();calc();
 })();

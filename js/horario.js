@@ -25,6 +25,7 @@ function estado(){const n=ahoraBogota(),fest=esFestivo(n.y,n.m,n.d),[a,c]=fest?H
  for(let i=1;i<=8;i++){const t=new Date(Date.UTC(n.y,n.m-1,n.d+i)),fe=esFestivo(t.getUTCFullYear(),t.getUTCMonth()+1,t.getUTCDate()),ab=(fe?HORARIO.festivo:HORARIO.semana)[0];
   return{abierto:false,txt:'Cerrado · abrimos '+(i===1?'mañana':'el '+['domingo','lunes','martes','miércoles','jueves','viernes','sábado'][t.getUTCDay()])+' a las '+hora(ab)}}}
 function pintar(){const e=estado();document.querySelectorAll('[data-hstatus]').forEach(el=>{el.textContent=e.txt;el.classList.toggle('open',e.abierto);el.classList.toggle('closed',!e.abierto)})}
-window.JRG_HORARIO={estado,festivos,esFestivo};
+const horas=(y,m,d)=>esFestivo(y,m,d)?HORARIO.festivo:HORARIO.semana;   // [apertura, cierre] en minutos del día, para el calendario de citas
+window.JRG_HORARIO={estado,festivos,esFestivo,horas,ahora:ahoraBogota};
 pintar();setInterval(pintar,60000);
 })();

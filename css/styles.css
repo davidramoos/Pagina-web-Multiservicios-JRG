@@ -374,5 +374,6 @@ a[role=button]:focus-visible,button:focus-visible,input:focus-visible,select:foc
 .bolt-say:before{content:"";position:absolute;left:-12px;top:34px;width:20px;height:20px;background:#fff;border-left:2px solid var(--navy);border-bottom:2px solid var(--navy);transform:rotate(45deg)}
 .bolt-say b{display:block;color:var(--navy);font-size:1.2rem;margin-bottom:6px}.bolt-say p{color:var(--ink);line-height:1.55}
 .bolt-act{display:flex;flex-wrap:wrap;gap:12px}
+.bolt-nav{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}.bolt-nav .btn{font:inherit;font-weight:700;cursor:pointer;border:0;padding:12px 22px}.bolt-count{font-weight:800;color:var(--steel);min-width:62px;text-align:center}
 .bolt-act button.btn{font:inherit;font-weight:700;cursor:pointer;border:0}
-@media(max-width:700px){.bolt{grid-template-columns:1fr;text-align:center;padding:20px}.bolt-img{max-width:240px}.bolt-say{text-align:left;min-height:0}.bolt-say:before{left:50%;top:-12px;margin-left:-10px;border-left:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:0;transform:rotate(45deg)}.bolt-act{justify-content:center}}
+@media(max-width:700px){.bolt{grid-template-columns:1fr;text-align:center;padding:20px}.bolt-img{max-width:240px}.bolt-say{text-align:left;min-height:190px}.bolt-say:before{left:50%;top:-12px;margin-left:-10px;border-left:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:0;transform:rotate(45deg)}.bolt-act,.bolt-nav{justify-content:center}}

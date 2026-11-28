@@ -30,9 +30,38 @@ const T=[
 ['¿Y el aceite sintético?','Cada 10.000 km, o una vez al año si tu control es por fecha.'],
 ['Cambia el filtro con el aceite','Un filtro viejo ensucia el aceite nuevo. Pídelo junto con tu cambio y queda todo al día.'],
 ['Tu historial está guardado con tu placa','Entra a Cotizar, elige «Ya he cambiado acá» y mira tus cambios anteriores y cuándo te toca el próximo.'],
-['Revisa el nivel entre cambios','Con el motor frío y en piso plano: si está por debajo de la marca, avísanos y lo completamos.']];
-const h=$('#boltH'),p=$('#boltP'),b=$('#boltN');if(!h||!p||!b)return;
-let i=Math.floor(Math.random()*T.length);
-const show=()=>{h.textContent=T[i][0];p.textContent=T[i][1]};
-b.onclick=()=>{i=(i+1)%T.length;show()};show();
+['Revisa el nivel entre cambios','Con el motor frío y en piso plano: si está por debajo de la marca, avísanos y lo completamos.'],
+['Luz roja del aceite encendida','Apaga el motor apenas puedas hacerlo con seguridad. Seguir manejando sin presión de aceite puede dañarlo en pocos minutos.'],
+['No sobreexijas el motor frío','Los primeros minutos maneja suave y sin acelerar a fondo. El aceite todavía no llegó a su temperatura y protege menos.'],
+['No hace falta calentarlo mucho','Con unos 30 segundos de ralentí basta. Es mejor arrancar y andar suave los primeros kilómetros que dejarlo encendido parado.'],
+['Mide el aceite bien','Apaga el motor y espera unos 5 minutos antes de sacar la varilla, para que el aceite baje al cárter y la lectura sea real.'],
+['Si el aceite se ve oscuro, no te asustes','El aceite oscuro limpia: arrastra la suciedad del motor. Lo que sí es mala señal es que se vea lechoso (puede tener agua o refrigerante).'],
+['Si te falta aceite en la carretera','Completar con otro aceite es mejor que andar con el nivel bajo. Después haz el cambio completo y usa la viscosidad que pide tu manual.'],
+['Trayectos cortos, cambio por tiempo','Si casi siempre haces recorridos cortos, el motor no alcanza a calentarse bien y el aceite se contamina antes. Cámbialo por fecha, no solo por km.'],
+['Un carro parado también necesita aceite nuevo','Aunque ruede poco, el aceite envejece con el tiempo y la humedad. Por eso también hay cambio por fecha.'],
+['Filtro de aire tapado','El motor respira peor, pierde fuerza y gasta más combustible. Revísalo en cada cambio de aceite, y más seguido si andas por vías destapadas.'],
+['Filtro de combustible sucio','Si el carro se ahoga, tironea o pierde fuerza al acelerar, el filtro de combustible puede estar tapado.'],
+['Nunca abras el radiador caliente','El refrigerante sale a presión y puede quemarte. Espera a que el motor se enfríe del todo antes de quitar la tapa.'],
+['Si la aguja de temperatura sube','Apaga el motor en un lugar seguro y espera. Seguir manejando caliente puede torcer la culata, una reparación muy costosa.'],
+['Cuidado al mezclar refrigerantes','Los de distinta química pueden formar gel y tapar el sistema. Pregúntanos cuál lleva tu carro antes de completar.'],
+['Luz de «check engine»','Encendida fija: revisa pronto. Si parpadea, para el carro: puede haber fallos fuertes de encendido que dañan el catalizador.'],
+['Si tu carro es turbo','Después de manejar exigido, déjalo unos segundos en ralentí antes de apagarlo para que el turbo se enfríe con aceite circulando.'],
+['Bornes de la batería','El polvo blanco o verdoso en los bornes dificulta el arranque. Límpialos y ajústalos. Si tu batería está floja, en el taller hacemos carga de baterías.'],
+['Presión de las llantas','Revísala en frío al menos una vez al mes. Con poca presión gastas más combustible y las llantas se desgastan de forma despareja.'],
+['Motos: aceite de moto','Las motos con embrague en baño de aceite necesitan aceite para moto (norma JASO MA). El de carro puede hacer patinar el embrague.'],
+['La correa de repartición no avisa','Si se rompe, el motor puede dañarse en segundos. Cámbiala según el kilometraje o el tiempo que indica el fabricante, aunque se vea bien.'],
+['¿Sabías que el aceite hace más que lubricar?','También refrigera piezas internas, limpia residuos y protege contra la corrosión.'],
+['¿Sabías qué significa la «W» en 10W-40?','Viene de «winter» (invierno). El primer número indica qué tan fluido es en frío y el segundo, qué tan espeso es en caliente.'],
+['¿Sabías que tu filtro tiene una válvula de emergencia?','Si el filtro se tapa, una válvula deja pasar aceite sin filtrar para no dejar el motor sin lubricación. Por eso no conviene alargar el cambio.'],
+['¿Sabías que es normal que el motor gaste algo de aceite?','Una parte se quema en el funcionamiento. Por eso es importante revisar el nivel entre cambios.'],
+['¿Sabías cuánto trae un cuarto de aceite?','Un cuarto equivale a unos 0,95 litros, casi un litro. Muchos motores de carro usan entre 3 y 5 cuartos.'],
+['¿Sabías que el aceite sintético aguanta más calor?','Resiste mejor las altas temperaturas y se degrada más despacio, por eso dura más kilómetros entre cambios.']];
+const h=$('#boltH'),p=$('#boltP'),bn=$('#boltN'),bb=$('#boltB'),bc=$('#boltC');if(!h||!p||!bn||!bb)return;
+/* Orden al azar (se mezcla una vez al abrir la página). «Anterior» y «Siguiente» recorren la lista en círculo. */
+const o=T.map((_,k)=>k);for(let k=o.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[o[k],o[j]]=[o[j],o[k]]}
+let i=0;
+const show=()=>{const t=T[o[i]];h.textContent=t[0];p.textContent=t[1];if(bc)bc.textContent=(i+1)+' / '+o.length};
+bn.onclick=()=>{i=(i+1)%o.length;show()};
+bb.onclick=()=>{i=(i-1+o.length)%o.length;show()};
+show();
 })();

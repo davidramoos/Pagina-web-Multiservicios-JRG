@@ -18,6 +18,10 @@ window.JRG={
  async kmPend(placa){if(!api())return{ok:false};try{return await pedir(api()+'?action=kmpend&placa='+encodeURIComponent(placa))}catch(e){return{ok:false}}},
  async km(d){if(!api())return{ok:false,error:'sin_api'};
   return pedir(api(),{method:'POST',body:JSON.stringify(Object.assign({action:'km'},d))})},
+ async citas(desde,hasta){if(!api())return{ok:false,error:'sin_api'};
+  return pedir(api()+'?action=citas&desde='+encodeURIComponent(desde)+'&hasta='+encodeURIComponent(hasta))},
+ async agendar(d){if(!api())return{ok:false,error:'sin_api'};
+  return pedir(api(),{method:'POST',body:JSON.stringify(Object.assign({action:'agendar'},d))})},
  async registrar(d){if(!api())return{ok:false,error:'sin_api'};
   return pedir(api(),{method:'POST',body:JSON.stringify(Object.assign({action:'registrar'},d))})}
 };

@@ -47,7 +47,7 @@ $('#pres').onclick=e=>{const b=e.target.closest('[data-pres]');if(!b)return;PRES
 function drawSvc(){const ch=(v,t)=>`<button type="button" class="chip${svc===v?' on':''}" data-svc="${v}">${t}</button>`;
  $('#vsvc').innerHTML=`<label style="margin-top:14px">¿Qué quieres cambiar?</label><div class="chips" style="margin:6px 0 0">${ch('aceite','Aceite de motor')}<button type="button" class="chip" data-go="liquidos?to=l-valv">Valvulina (caja / diferencial) →</button></div>`;
  const v=svc==='valv';$('#lcant').textContent=v?'Cantidad de valvulina (en cuartos)':'Cantidad de aceite (en cuartos)';
- $('#h2').textContent=v?'2. Tu valvulina':'2. Tu aceite';$('#h3f').hidden=v;$('#fbox').hidden=v;$('#oq').placeholder=v?'Buscar valvulina: 80W90, Terpel…':'Buscar aceite: 20W50, Castrol…';
+ $('#h2').textContent=v?'2. Tu valvulina':'2. Tu aceite';$('#h3f').hidden=v;if($('#h4a'))$('#h4a').firstChild.textContent=v?'3. Agenda tu cambio ':'4. Agenda tu cambio ';$('#fbox').hidden=v;$('#oq').placeholder=v?'Buscar valvulina: 80W90, Terpel…':'Buscar aceite: 20W50, Castrol…';
  $('#cnote').textContent=v?'Cantidad aproximada para caja o diferencial; ajústala según tu vehículo. Confirmamos al revisarlo.':'Ejemplo: 5 cuartos = 1 galón + 1 cuarto. Puedes cambiarla si tu vehículo lleva otra cantidad.'}
 $('#vsvc').onclick=e=>{const b=e.target.closest('[data-svc]');if(!b||b.dataset.svc===svc)return;svc=b.dataset.svc;selOil=null;PRES='mix';lastType=null;drawSvc();setCant(true);onVeh();drawPres()};
 function drawMot(){const k=vehKey(),m=modKey(k),box=$('#vmot'),v=k&&m&&svc!=='valv'&&MOT[k+'|'+m];
@@ -136,7 +136,7 @@ function calc(){const k=vehKey(),m=modKey(k),dl=$('#sumdl'),msg=[];drawBenef();
  if($v('marca')&&!k)msg.push('No encontramos esa marca. Elígela de la lista.');
  else if(k&&$v('modelo')&&!m)msg.push('No encontramos ese modelo en '+k+'. Elígelo de la lista.');
  $('#err').innerHTML=msg.map(x=>`<p>${x}</p>`).join('');Q=null;
- if(!(k&&m&&selOil&&!msg.length)){dl.innerHTML=`<dt>Vehículo</dt><dd>${k&&m?k+' '+m:'Elige marca y modelo'}</dd><dt>Aceite</dt><dd>${selOil?esc(selOil.n):'Elige un aceite'}</dd>`;$('#tot').textContent='$0';$('#sendQ').disabled=true;return}
+ if(!(k&&m&&selOil&&!msg.length)){dl.innerHTML=`<dt>Vehículo</dt><dd>${k&&m?k+' '+m:'Elige marca y modelo'}</dd><dt>Aceite</dt><dd>${selOil?esc(selOil.n):'Elige un aceite'}</dd>`;$('#tot').textContent='$0';$('#sendQ').disabled=true;agSync();return}
  const cu=Math.max(0.5,parseFloat($('#cant').value)||(svc==='valv'?2:VEH[k][m])),mt=isMoto(k),oil=selOil,co=costoAceite(oil,cu,PRES),ac=co.costo,lines=[],valv=svc==='valv';let fsum=0,fi=false,fav=false;
  if(!valv)FT.forEach(([id])=>{const label=FTLABEL(id),s=FSEL[id];if(!s||!s.on)return;
   const n0=lines.length,els=[...document.querySelectorAll('[data-fs="'+id+'"]')],cnt=s.ops.length?els.length:(s.n||1);
@@ -151,8 +151,14 @@ function calc(){const k=vehKey(),m=modKey(k),dl=$('#sumdl'),msg=[];drawBenef();
  $('#tot').textContent=money(total);
  $('#mono').textContent=valv?'La mano de obra del cambio de valvulina se confirma en el local y no está incluida en el total.':completo?'Cambio completo (aceite + filtro de aceite + filtro de aire): la mano de obra no tiene costo.':'La mano de obra es gratis con el cambio completo: aceite, filtro de aceite y filtro de aire. Si falta alguno, se confirma en el local y no está incluida en el total.';
  if(gran)$('#mono').textContent+=' Aceite a granel: el valor del cambio puede presentar variaciones.';
- $('#sendQ').disabled=false}
-$('#sendQ').onclick=()=>Q&&ticket({t:Q.valv?'Cotización de cambio de valvulina':'Cotización de cambio de aceite',lines:['Vehículo: '+Q.k+' '+Q.m+(motor&&!Q.valv?' ('+motor.n+')':''),(Q.valv?'Valvulina: ':'Aceite: ')+Q.oil.n+' ('+Q.cu+' cuartos = '+Q.txt+(Q.oil.inf?', presentación estimada':'')+')',...Q.lines.map(l=>l[0]+': '+l[1]+' ('+money(l[2])+')'),'Mano de obra: '+(Q.completo?'GRATIS (cambio completo)':'a confirmar en el local'),...(!Q.valv&&/GRANEL/i.test(Q.oil.n)?['Aceite a granel: el valor del cambio puede presentar variaciones']:[]),...(!Q.valv&&window.JRGKm&&JRGKm.inc(Q.oil.n+' '+(Q.oil.x||''))?['Próximo cambio: cada '+JRGKm.inc(Q.oil.n+' '+(Q.oil.x||'')).toLocaleString('es-CO')+' km ('+JRGKm.etiqueta(Q.oil.n+' '+(Q.oil.x||''))+')']:[]),...(BEN()&&!Q.valv?['Beneficio: '+BEN()]:[]),...(Q.oil.st?[]:['Aceite sin stock registrado: consultar disponibilidad'])],total:Q.total,ask:'full'});
+ $('#sendQ').disabled=false;agSync()}
+/* Calendario de citas: la duración (y por eso los horarios) depende de lo que cotizó el cliente */
+function durQ(){return !Q?JRGAgenda.DUR.aceite:Q.valv?JRGAgenda.DUR.valvulina:(Q.fi||Q.fav)?JRGAgenda.DUR.aceite_filtros:JRGAgenda.DUR.aceite}
+function srvQ(){return !Q?'':Q.valv?'Cambio de valvulina':(Q.fi||Q.fav)?'Cambio de aceite con filtros':'Cambio de aceite (solo aceite)'}
+var AG=null,lastDur=0;
+function agSync(){if(!AG)return;const d=durQ();if(d!==lastDur){lastDur=d;AG.refrescar()}}
+AG=JRGAgenda.crear($('#agQ'),{dur:durQ});lastDur=durQ();
+$('#sendQ').onclick=()=>Q&&ticket({t:Q.valv?'Cotización de cambio de valvulina':'Cotización de cambio de aceite',lines:['Vehículo: '+Q.k+' '+Q.m+(motor&&!Q.valv?' ('+motor.n+')':''),(Q.valv?'Valvulina: ':'Aceite: ')+Q.oil.n+' ('+Q.cu+' cuartos = '+Q.txt+(Q.oil.inf?', presentación estimada':'')+')',...Q.lines.map(l=>l[0]+': '+l[1]+' ('+money(l[2])+')'),'Mano de obra: '+(Q.completo?'GRATIS (cambio completo)':'a confirmar en el local'),...(!Q.valv&&/GRANEL/i.test(Q.oil.n)?['Aceite a granel: el valor del cambio puede presentar variaciones']:[]),...(!Q.valv&&window.JRGKm&&JRGKm.inc(Q.oil.n+' '+(Q.oil.x||''))?['Próximo cambio: cada '+JRGKm.inc(Q.oil.n+' '+(Q.oil.x||'')).toLocaleString('es-CO')+' km ('+JRGKm.etiqueta(Q.oil.n+' '+(Q.oil.x||''))+')']:[]),...(BEN()&&!Q.valv?['Beneficio: '+BEN()]:[]),...(Q.oil.st?[]:['Aceite sin stock registrado: consultar disponibilidad'])],total:Q.total,ask:'full',cita:AG.valor(),servicio:srvQ(),agenda:AG});
 /* ---------- opciones ---------- */
 function modo(m){$$('.opt').forEach(o=>o.classList.toggle('sel',o.dataset.mode===m));$('#paneNuevo').hidden=m!=='nuevo';$('#paneCliente').hidden=m!=='cliente';(m==='nuevo'?$('#marca'):$('#placa')).focus();calc()}
 $$('.opt').forEach(b=>b.onclick=()=>modo(b.dataset.mode));

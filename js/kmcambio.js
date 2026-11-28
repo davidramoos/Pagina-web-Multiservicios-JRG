@@ -1,6 +1,6 @@
 /* ===== PRÓXIMO cambio: por KILÓMETROS o por FECHA (según cómo se controle cada vehículo) =====
    Por km (el KM ACTUAL de la hoja es un número):
-     Mineral y granel (SAE 50, 20W-50, 25W-50 y demás) → +5.000 km · Semisintético (10W-30, 10W-40, 15W-40 …) → +6.000 km · Full sintético → +10.000 km
+     Mineral y granel (SAE 50, 20W-50, 25W-50 y demás) → +5.000 km · Semisintético (10W-30, 10W-40, 15W-40 …) → +7.000 km · Full sintético → +10.000 km
    Por fecha (el KM ACTUAL de la hoja es una fecha, porque ese carro se controla por tiempo):
      Mineral y granel → 3 a 4 meses · Semisintético → 7 a 9 meses · Full sintético → 12 meses
    Son dos formas distintas: cada vehículo se controla por una u otra, no por «lo que ocurra primero».
@@ -9,7 +9,7 @@
    Orden de decisión: 1) palabras «semisintético»  2) «sintético / synthetic»  3) «mineral»  4) viscosidad
    (0W y 5W = sintético · 10W y 15W = semisintético · 20W, 25W y SAE 30/40/50/60 = mineral). Si no se puede saber, no se inventa nada. */
 (function(){
-const KM={mineral:5000,semi:6000,sintetico:10000};
+const KM={mineral:5000,semi:7000,sintetico:10000};
 const MESES={mineral:[3,4],semi:[7,9],sintetico:[12,12]};   // [mínimo, máximo]
 const ETQ={mineral:'mineral o a granel',semi:'semisintético',sintetico:'sintético'};
 const NU=s=>String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();

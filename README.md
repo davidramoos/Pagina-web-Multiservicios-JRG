@@ -19,5 +19,8 @@ Sube el contenido de esta carpeta al hosting (sin `admin.html`, `generador-qr.ht
 ## Datos de clientes
 La página no guarda datos por su cuenta: los registros y kilometrajes llegan al Excel «INVENTARIO 2026 JRG» (pestañas REGISTRO WEB y KM WEB) como PENDIENTE hasta que el dueño los confirme.
 
+## Agenda y órdenes en PDF
+En Cotizar (cliente nuevo) y en Registro el cliente puede elegir día y hora en un calendario; los horarios salen según el servicio y el horario del taller. Las citas llegan a la pestaña CITAS del Excel como PENDIENTE; tú las confirmas cambiando ESTADO. El comprobante se descarga en PDF. Requiere publicar la versión nueva del Apps Script (ver `apps_script_km.gs`).
+
 ## Código QR del local
 Abre la página con `#qr` al final (por ejemplo `https://tu-sitio.com/#qr`), revisa la dirección, imprime o descarga el QR. Quien lo escanea llega a `#ingreso`: escribe placa y kilometraje y ve su tarjeta de cambios, o se registra si es su primera vez.

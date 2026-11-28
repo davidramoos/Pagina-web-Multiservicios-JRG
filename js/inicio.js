@@ -26,7 +26,7 @@ $$('[data-i]').forEach(e=>e.src=IMGS[e.dataset.i]);
 (function(){
 const T=[
 ['¿Cada cuánto cambio un aceite mineral o a granel?','Cada 5.000 km. Si tu vehículo se controla por tiempo, cada 3 a 4 meses.'],
-['¿Y el semisintético?','Cada 6.000 km, o cada 7 a 9 meses si tu control es por fecha.'],
+['¿Y el semisintético?','Cada 7.000 km, o cada 7 a 9 meses si tu control es por fecha.'],
 ['¿Y el aceite sintético?','Cada 10.000 km, o una vez al año si tu control es por fecha.'],
 ['Cambia el filtro con el aceite','Un filtro viejo ensucia el aceite nuevo. Pídelo junto con tu cambio y queda todo al día.'],
 ['Tu historial está guardado con tu placa','Entra a Cotizar, elige «Ya he cambiado acá» y mira tus cambios anteriores y cuándo te toca el próximo.'],
